@@ -4,18 +4,22 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
+	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
 )
 
-//websocket
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "homePage")
+var fileServer = http.FileServer(http.Dir("./static"))
+
+func delChar(s []rune, index int) []rune {
+	return append(s[0:index], s[index+1:]...)
 }
 
 func reader(conn *websocket.Conn) {
@@ -26,6 +30,26 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 		log.Println(string(p))
+
+		//if string(p)[0] != '!' {
+		//	continue
+		//}
+
+		c := strings.Split(string(p), ",")
+
+		x, err := strconv.Atoi(c[0])
+		if err != nil {
+			// handle error
+			fmt.Println(err)
+		}
+
+		y, err := strconv.Atoi(c[1])
+		if err != nil {
+			// handle error
+			fmt.Println(err)
+		}
+
+		robotgo.MoveMouse(x, y)
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			return
@@ -45,7 +69,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupRoutes() {
-	http.HandleFunc("/", homePage)
+	http.Handle("/", fileServer)
 	http.HandleFunc("/ws", wsEndpoint)
 }
 
