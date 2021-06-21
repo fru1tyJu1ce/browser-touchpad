@@ -23,6 +23,9 @@ func delChar(s []rune, index int) []rune {
 }
 
 func reader(conn *websocket.Conn) {
+
+	//	lastX, lastY := robotgo.GetMousePos()
+
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
@@ -35,7 +38,7 @@ func reader(conn *websocket.Conn) {
 		//	continue
 		//}
 
-		c := strings.Split(string(p), ",")
+		c := strings.Split(string(p), " ")
 
 		x, err := strconv.Atoi(c[0])
 		if err != nil {
@@ -49,7 +52,9 @@ func reader(conn *websocket.Conn) {
 			fmt.Println(err)
 		}
 
-		robotgo.MoveMouse(x, y)
+		actX, actY := robotgo.GetMousePos()
+
+		robotgo.MoveMouse(actX+x, actY+y)
 
 		if err := conn.WriteMessage(messageType, p); err != nil {
 			return
@@ -76,5 +81,6 @@ func setupRoutes() {
 func main() {
 	fmt.Println("startup")
 	setupRoutes()
+	fmt.Println(robotgo.GetMousePos()) // DEBUG
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
