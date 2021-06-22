@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
@@ -79,8 +80,14 @@ func setupRoutes() {
 }
 
 func main() {
+	var wg sync.WaitGroup
 	fmt.Println("startup")
 	setupRoutes()
-	fmt.Println(robotgo.GetMousePos()) // DEBUG
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	wg.Add(1)
+	go func() {
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}()
+	fmt.Println("server is running")
+	wg.Wait()
+
 }

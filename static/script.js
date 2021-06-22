@@ -33,7 +33,7 @@ var lastMouseUp = 0;
 
 const diffDownUp = 190;
 const diffDoubleUp = 190;
-const diffMouseMovement = 190;
+const diffMouseMovement = 100;
 
 
 //Mousemoement
@@ -75,11 +75,12 @@ const diffMouseMovement = 190;
 
     let x = event.pageX;
     let y = event.pageY; 
-    let dX = (x-lastX+1)*3;
-    let dY = (y-lastY+1)*3;
+    let dX = (x-lastX+1)*2;
+    let dY = (y-lastY+1)*2;
 
-
-    socket.send(dX + ' ' + dY);
+    if(dX > 3 || dY > 3){
+      socket.send(dX + ' ' + dY);
+    }
 
     lastX = x;
     lastY = y;
