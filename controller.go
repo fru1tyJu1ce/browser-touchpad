@@ -1,16 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
 )
+
+type ClientMessage struct {
+	Type string `json:"Type"`
+	DX   int    `json:"dX"`
+	DY   int    `json:"dY"`
+}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -19,52 +24,45 @@ var upgrader = websocket.Upgrader{
 
 var fileServer = http.FileServer(http.Dir("./static"))
 
-func delChar(s []rune, index int) []rune {
-	return append(s[0:index], s[index+1:]...)
-}
-
 func reader(conn *websocket.Conn) {
 
 	//	lastX, lastY := robotgo.GetMousePos()
-
+	var msg ClientMessage
 	for {
-		messageType, p, err := conn.ReadMessage()
+		messageType, rawMsg, err := conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		log.Println(string(p))
+		log.Println(string(rawMsg))
 
-		//if string(p)[0] != '!' {
-		//	continue
-		//}
-
-		c := strings.Split(string(p), " ")
-
-		x, err := strconv.Atoi(c[0])
-		if err != nil {
-			// handle error
-			fmt.Println(err)
+		errjSON := json.Unmarshal([]byte(rawMsg), &msg)
+		if errjSON != nil {
+			log.Println(err)
+			continue
 		}
 
-		y, err := strconv.Atoi(c[1])
-		if err != nil {
-			// handle error
-			fmt.Println(err)
+		switch msgType := msg.Type; msgType {
+		case "mouseMove":
+			actualPosX, actualPosY := robotgo.GetMousePos()
+			robotgo.MoveMouse(actualPosX+msg.DX, actualPosY+msg.DY)
+		case "click":
+			robotgo.MouseClick("left", true)
+		case "doubleClick":
+			robotgo.MouseClick("left", true)
+			robotgo.MouseClick("left", true)
+		default:
+			fmt.Println("unknown message type")
 		}
 
-		actX, actY := robotgo.GetMousePos()
-
-		robotgo.MoveMouse(actX+x, actY+y)
-
-		if err := conn.WriteMessage(messageType, p); err != nil {
+		if err := conn.WriteMessage(messageType, rawMsg); err != nil {
 			return
 		}
 	}
 }
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true } //TODO
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -89,5 +87,4 @@ func main() {
 	}()
 	fmt.Println("server is running")
 	wg.Wait()
-
 }

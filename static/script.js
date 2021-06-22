@@ -78,9 +78,13 @@ const diffMouseMovement = 100;
     let dX = (x-lastX+1)*2;
     let dY = (y-lastY+1)*2;
 
-    if(dX > 3 || dY > 3){
-      socket.send(dX + ' ' + dY);
-    }
+    
+    socket.send(JSON.stringify({
+      Type: "mouseMove",
+      dX: dX,
+      dY: dY
+    }));
+
 
     lastX = x;
     lastY = y;
@@ -126,13 +130,17 @@ function touchHandler(event) {
 
 function click() {
   document.getElementById("mouseC").innerHTML = "click detected";
-  // socket.send('click detected');
+  socket.send(JSON.stringify({
+    type: "click"
+  }));
   console.log('sending');
 }
 
 function doubleClick() {
   document.getElementById("mouseDC").innerHTML = "doubleclick detected";
-  // socket.send('doubleclick detected');
+  socket.send(JSON.stringify({
+    type: "doubleClick"
+  }));
 }
 
 
