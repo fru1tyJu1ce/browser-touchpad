@@ -21,18 +21,20 @@ socket.onerror = (error) => {
 }
 
 
-// mouse and touch detection
+// mouse + touch detection
 
 var lastMouseMove; //must be initialized
 
 var lastX = 0;
 var lastY = 0;
 
+var lastDX = 0;
+var lastDY = 0;
+
 var lastMouseDown = 0;
 var lastMouseUp = 0;
 
 const diffDownUp = 190;
-const diffDoubleUp = 190;
 const diffMouseMovement = 100;
 
 
@@ -42,7 +44,7 @@ const diffMouseMovement = 100;
   function handleMouseMove(event) {
     var eventDoc, doc, body;
 
-    console.log('mouse movement detected');
+    //console.log('mouse movement detected');
 
     event = event || window.event; // IE-ism
 
@@ -69,31 +71,30 @@ const diffMouseMovement = 100;
 
     if ((new Date() - lastMouseMove) >= diffMouseMovement) {
       lastX = event.pageX;
-      lastY =  event.pageY;
+      lastY = event.pageY;
       lastMouseMove = new Date();
     }
 
     let x = event.pageX;
-    let y = event.pageY; 
-    let dX = (x-lastX+1)*2;
-    let dY = (y-lastY+1)*2;
+    let y = event.pageY;
+    let dx = (x - lastX)*2;
+    let dy = (y - lastY)*2;
 
-    
+
+
     socket.send(JSON.stringify({
       Type: "mouseMove",
-      dX: dX,
-      dY: dY
+      dx: dx,
+      dy: dy
     }));
 
 
     lastX = x;
     lastY = y;
-
-
   }
 })();
 
-/*
+
 function isTouchScreendevice() {
   return 'ontouchstart' in window || navigator.maxTouchPoints;
 };
@@ -101,7 +102,7 @@ function isTouchScreendevice() {
 if (isTouchScreendevice()) {
   alert("I am a touch screen device")
 }
-*/
+
 
 function touchHandler(event) {
   var touches = event.changedTouches,
@@ -133,25 +134,11 @@ function click() {
   socket.send(JSON.stringify({
     type: "click"
   }));
-  console.log('sending');
-}
-
-function doubleClick() {
-  document.getElementById("mouseDC").innerHTML = "doubleclick detected";
-  socket.send(JSON.stringify({
-    type: "doubleClick"
-  }));
 }
 
 
 window.addEventListener("mouseup", function (event) {
   document.getElementById("mouseB").innerHTML = "mouse up";
-
-  console.log('mouseUp ' + lastMouseUp);
-  if ((new Date() - lastMouseUp) <= diffDoubleUp) {//doubleclick
-    doubleClick();
-    return;
-  }
 
   lastMouseUp = new Date();
   let diff = (lastMouseUp - lastMouseDown);
@@ -167,7 +154,6 @@ window.addEventListener("mousedown", function (event) {
   lastMouseDown = new Date();
   console.log('mouseDown ' + lastMouseDown)
 }, false);
-
 
 
 function init() {

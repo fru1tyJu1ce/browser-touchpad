@@ -13,8 +13,8 @@ import (
 
 type ClientMessage struct {
 	Type string `json:"Type"`
-	DX   int    `json:"dX"`
-	DY   int    `json:"dY"`
+	DX   int    `json:"dx"`
+	DY   int    `json:"dy"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -23,6 +23,11 @@ var upgrader = websocket.Upgrader{
 }
 
 var fileServer = http.FileServer(http.Dir("./static"))
+
+func mouseMove(dx int, dy int) {
+	actualPosX, actualPosY := robotgo.GetMousePos()
+	robotgo.MoveMouse(actualPosX+dx, actualPosY+dy)
+}
 
 func reader(conn *websocket.Conn) {
 
@@ -44,15 +49,11 @@ func reader(conn *websocket.Conn) {
 
 		switch msgType := msg.Type; msgType {
 		case "mouseMove":
-			actualPosX, actualPosY := robotgo.GetMousePos()
-			robotgo.MoveMouse(actualPosX+msg.DX, actualPosY+msg.DY)
+			mouseMove(msg.DX, msg.DY)
 		case "click":
-			robotgo.MouseClick("left", true)
-		case "doubleClick":
-			robotgo.MouseClick("left", true)
-			robotgo.MouseClick("left", true)
+			robotgo.MouseClick()
 		default:
-			fmt.Println("unknown message type")
+			fmt.Println("unknown command recived")
 		}
 
 		if err := conn.WriteMessage(messageType, rawMsg); err != nil {
