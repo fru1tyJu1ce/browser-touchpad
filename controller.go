@@ -52,6 +52,10 @@ func reader(conn *websocket.Conn) {
 			mouseMove(msg.DX, msg.DY)
 		case "click":
 			robotgo.MouseClick()
+		case "toggle":
+			robotgo.MouseToggle("down", "left")
+		case "toggleUp":
+			robotgo.MouseToggle("up")
 		default:
 			fmt.Println("unknown command recived")
 		}
