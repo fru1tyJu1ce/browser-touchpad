@@ -66,6 +66,12 @@ func reader(conn *websocket.Conn) {
 	}
 }
 
+/*
+gadget arrange badge frozen
+grow choice kit mystery bicycle
+soup toy nose
+*/
+
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true } //TODO
 
