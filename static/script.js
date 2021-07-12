@@ -1,4 +1,6 @@
 //const socket = new WebSocket("ws://192.168.0.9:8080/ws");
+
+
 const socket = new WebSocket("ws://192.168.188.23:8080/ws");
 
 console.log('attempting websocket connection');
@@ -19,6 +21,7 @@ socket.onmessage = (msg) => {
 socket.onerror = (error) => {
   console.log('socket error: ', error);
 }
+
 
 
 // mouse + touch detection
@@ -133,7 +136,7 @@ function touchHandler(event) {
     false, false, false, 0/*left*/, null);
 
   first.target.dispatchEvent(simulatedEvent);
-  event.preventDefault();
+  //event.preventDefault();
 }
 
 function click() {
@@ -180,11 +183,22 @@ window.addEventListener("mousedown", function (event) {
 }, false);
 
 
+
+
 function init() {
-  document.addEventListener("touchstart", touchHandler, true);
-  document.addEventListener("touchmove", touchHandler, true);
-  document.addEventListener("touchend", touchHandler, true);
-  document.addEventListener("touchcancel", touchHandler, true);
+  document.addEventListener("touchstart", touchHandler, false);
+  document.addEventListener("touchmove", touchHandler, false);
+  document.addEventListener("touchend", touchHandler, false);
+  document.addEventListener("touchcancel", touchHandler, false);
 }
 
 init()
+
+
+document.getElementById("swtch").addEventListener('change', e => {
+
+  if(e.target.checked){
+    document.getElementById("demo").innerHTML = "Hello World";
+  }
+
+});
