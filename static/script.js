@@ -1,6 +1,4 @@
-//const socket = new WebSocket("ws://192.168.0.9:8080/ws");
-
-
+const socket = new WebSocket("ws://192.168.27.199:40839/ws");
 const socket = new WebSocket("ws://192.168.188.23:8080/ws");
 
 console.log('attempting websocket connection');
@@ -194,6 +192,7 @@ function init() {
 
 init()
 
+/*
 
 document.getElementById("swtch").addEventListener('change', e => {
 
@@ -201,4 +200,8 @@ document.getElementById("swtch").addEventListener('change', e => {
     document.getElementById("demo").innerHTML = "Hello World";
   }
 
+  
+
 });
+
+*/

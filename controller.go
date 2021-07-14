@@ -3,13 +3,28 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"strconv"
 	"sync"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
 )
+
+func checkErr(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func adressToJs(addr string) {
+	d1 := []byte(addr)
+	err := ioutil.WriteFile("./static/script.js", d1, 0644)
+	checkErr(err)
+}
 
 type ClientMessage struct {
 	Type string `json:"Type"`
@@ -23,6 +38,19 @@ var upgrader = websocket.Upgrader{
 }
 
 var fileServer = http.FileServer(http.Dir("./static"))
+
+// Get preferred outbound ip of this machine
+func GetOutboundIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
+}
 
 func mouseMove(dx int, dy int) {
 	actualPosX, actualPosY := robotgo.GetMousePos()
@@ -66,12 +94,6 @@ func reader(conn *websocket.Conn) {
 	}
 }
 
-/*
-gadget arrange badge frozen
-grow choice kit mystery bicycle
-soup toy nose
-*/
-
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true } //TODO
 
@@ -94,8 +116,18 @@ func main() {
 	setupRoutes()
 	wg.Add(1)
 	go func() {
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		//log.Fatal(http.ListenAndServe(":8080", nil))
+
+		listener, err := net.Listen("tcp", ":0")
+		if err != nil {
+			panic(err)
+		}
+
+		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
+		//adressToJs(addr) TODO
+		fmt.Println("server is running", addr)
+		panic(http.Serve(listener, nil))
+
 	}()
-	fmt.Println("server is running")
 	wg.Wait()
 }
