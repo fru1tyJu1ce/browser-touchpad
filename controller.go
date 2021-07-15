@@ -3,27 +3,44 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
+	qrcode "github.com/yeqown/go-qrcode"
 )
 
-func checkErr(e error) {
-	if e != nil {
-		panic(e)
+func createQr(addr string) {
+	qrc, err := qrcode.New("http://" + addr)
+	if err != nil {
+		fmt.Printf("could not generate QRCode: %v", err)
+	}
+
+	// save file
+	if err := qrc.Save("./static/qrcode.jpeg"); err != nil {
+		fmt.Printf("could not save image: %v", err)
 	}
 }
 
-func adressToJs(addr string) {
-	d1 := []byte(addr)
-	err := ioutil.WriteFile("./static/script.js", d1, 0644)
-	checkErr(err)
+func parsesAdressToJs(addr string) {
+	socketJS := "const socket = new WebSocket(" + string('"') + "ws://" + addr + "/ws" + string('"') + ");  \n"
+
+	file, err := os.OpenFile("./static/script.js", os.O_RDWR, 0644)
+	if err != nil {
+		log.Fatalf("failed opening file: %s", err)
+	}
+	defer file.Close()
+
+	_len, err := file.WriteAt([]byte(socketJS), 0)
+	if err != nil && _len != len(socketJS) {
+		log.Fatalf("failed writing to file: %s", err)
+	}
+
 }
 
 type ClientMessage struct {
@@ -124,7 +141,8 @@ func main() {
 		}
 
 		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
-		//adressToJs(addr) TODO
+		parsesAdressToJs(addr)
+		createQr(addr)
 		fmt.Println("server is running", addr)
 		panic(http.Serve(listener, nil))
 
