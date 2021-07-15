@@ -21,10 +21,10 @@ func createQr(addr string) {
 		fmt.Printf("could not generate QRCode: %v", err)
 	}
 
-	// save file
 	if err := qrc.Save("./static/qrcode.jpeg"); err != nil {
 		fmt.Printf("could not save image: %v", err)
 	}
+
 }
 
 func parsesAdressToJs(addr string) {
@@ -50,8 +50,8 @@ type ClientMessage struct {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  128,
+	WriteBufferSize: 128,
 }
 
 var fileServer = http.FileServer(http.Dir("./static"))
@@ -129,12 +129,9 @@ func setupRoutes() {
 
 func main() {
 	var wg sync.WaitGroup
-	fmt.Println("startup")
 	setupRoutes()
 	wg.Add(1)
 	go func() {
-		//log.Fatal(http.ListenAndServe(":8080", nil))
-
 		listener, err := net.Listen("tcp", ":0")
 		if err != nil {
 			panic(err)
@@ -143,7 +140,7 @@ func main() {
 		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
 		parsesAdressToJs(addr)
 		createQr(addr)
-		fmt.Println("server is running", addr)
+		fmt.Println("server started", addr)
 		panic(http.Serve(listener, nil))
 
 	}()
