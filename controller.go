@@ -40,7 +40,7 @@ func createQr(addr string) {
 		fmt.Printf("could not generate QRCode: %v", err)
 	}
 
-	if err := qrc.Save("./static/qrcode.jpeg"); err != nil {
+	if err := qrc.Save("./static/server/qrcode.jpeg"); err != nil {
 		fmt.Printf("could not save image: %v", err)
 	}
 
@@ -49,7 +49,7 @@ func createQr(addr string) {
 func parsesAdressToJs(addr string) {
 	socketJS := "const socket = new WebSocket(" + string('"') + "ws://" + addr + "/ws" + string('"') + ");  \n"
 
-	file, err := os.OpenFile("./static/script.js", os.O_RDWR, 0644)
+	file, err := os.OpenFile("./static/client/script.js", os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatalf("failed opening file: %s", err)
 	}
@@ -73,7 +73,8 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 128,
 }
 
-var fileServer = http.FileServer(http.Dir("./static"))
+var fileServerServer = http.FileServer(http.Dir("./static/server"))
+var fileServerClient = http.FileServer(http.Dir("./static/client"))
 
 // Get preferred outbound ip of this machine
 func GetOutboundIP() net.IP {
@@ -142,7 +143,8 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupRoutes() {
-	http.Handle("/", fileServer)
+	http.Handle("/client/", http.StripPrefix("/client", fileServerClient))
+	http.Handle("/server/", http.StripPrefix("/server", fileServerServer))
 	http.HandleFunc("/ws", wsEndpoint)
 }
 
@@ -158,7 +160,8 @@ func main() {
 
 		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
 		parsesAdressToJs(addr)
-		createQr(addr)
+		createQr(addr + "/client")
+		open("http://" + addr + "/server")
 		fmt.Println("server started", addr)
 		panic(http.Serve(listener, nil))
 
