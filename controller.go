@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"sync"
 
@@ -14,6 +16,23 @@ import (
 	"github.com/gorilla/websocket"
 	qrcode "github.com/yeqown/go-qrcode"
 )
+
+func open(url string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default: // "linux", "freebsd", "openbsd", "netbsd"
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	return exec.Command(cmd, args...).Start()
+}
 
 func createQr(addr string) {
 	qrc, err := qrcode.New("http://" + addr)
