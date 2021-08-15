@@ -1,5 +1,4 @@
-const socket = new WebSocket("ws://192.168.188.23:46551/ws");  
-
+const socket = new WebSocket("ws://192.168.188.23:35779/ws");  
 
 console.log('attempting websocket connection');
 
@@ -20,15 +19,29 @@ socket.onerror = (error) => {
   console.log('socket error: ', error);
 }
 
+function sendMouse(type, dx, dy) {
+
+  socket.send(JSON.stringify({
+    Type: type,
+    dx: ~~dx,
+    dy: ~~dy
+  }));
+
+}
 
 
-// mouse + touch detection
+//touch detection
+
+var mouse = false; //true if touched on touchpad obj
+
 
 const diffClick = 400;
-const diffDownUp = 190;
+const diffDownUp = 400;
 const diffMouseMovement = 100;
 
-var lastMouseMove = new Date(); 
+var lastMouseMove = new Date();
+var lastMouseScroll = new Date();
+
 var lastClick = new Date();
 var toggle = false;
 
@@ -41,66 +54,87 @@ var lastDY = 0;
 var lastMouseDown = 0;
 var lastMouseUp = 0;
 
+function mouseStatus(n) {
+  mouse = n;
+}
 
+//Mousemovemmouseent
+var src = document.getElementById("touchpad");
 
-
-//Mousemoement
-(function () {
-  document.onmousemove = handleMouseMove;
-  function handleMouseMove(event) {
-    var eventDoc, doc, body;
-
-    //console.log('mouse movement detected');
-
-    event = event || window.event; // IE-ism
-
-    // If pageX/Y aren't available and clientX/Y are,
-    // calculate pageX/Y - logic taken from jQuery.
-    // (This is to support old IE)
-    if (event.pageX == null && event.clientX != null) {
-      eventDoc = (event.target && event.target.ownerDocument) || document;
-      doc = eventDoc.documentElement;
-      body = eventDoc.body;
-
-      event.pageX = event.clientX +
-        (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-        (doc && doc.clientLeft || body && body.clientLeft || 0);
-      event.pageY = event.clientY +
-        (doc && doc.scrollTop || body && body.scrollTop || 0) -
-        (doc && doc.clientTop || body && body.clientTop || 0);
-
-
-    }
-    document.getElementById("indec").innerHTML = "mouse input detected";
-    document.getElementById("indecx").innerHTML = event.pageX;
-    document.getElementById("indecy").innerHTML = event.pageY;
-
-    
-    if ((new Date() - lastMouseMove) >= diffMouseMovement) {
-      lastX = event.pageX;
-      lastY = event.pageY;
-      lastMouseMove = new Date();
-    }
-    
-
-    let x = event.pageX;
-    let y = event.pageY;
-    let dx = (x - lastX)*2;
-    let dy = (y - lastY)*2;
-
-
-
-    socket.send(JSON.stringify({
-      Type: "mouseMove",
-      dx: dx,
-      dy: dy
-    }));
-
-
-    lastX = x;
-    lastY = y;
+function moveMose(e) {
+  if ((new Date() - lastMouseMove) >= diffMouseMovement) {
+    lastX = e.changedTouches[0].pageX;
+    lastY = e.changedTouches[0].pageY;
+    lastMouseMove = new Date();
   }
-})();
+
+
+  let x = e.changedTouches[0].pageX;
+  let y = e.changedTouches[0].pageY;
+  let dx = (x - lastX) * 2;
+  let dy = (y - lastY) * 2;
+  if (mouse) {
+    sendMouse("mouseMove", dx, dy);
+  }
+}
+
+function scroll(e) {
+  if ((new Date() - lastMouseScroll) >= diffMouseMovement) {
+    lastY = e.changedTouches[0].pageY;
+    lastMouseScroll = new Date();
+  }
+
+  let y = e.changedTouches[0].pageY;
+  let dy = (y - lastY) * 2;
+  if (mouse) {
+    sendMouse("scroll", 0, dy);
+  }
+}
+
+window.addEventListener('touchmove', function (e) {
+
+  document.getElementById("indec").innerHTML = "mouse input detected";
+  // Iterate through the touch points that have moved and log each
+  // of the pageX/Y coordinates. The unit of each coordinate is CSS pixels.
+
+  /*
+  var i;
+  for (i=0; i < e.changedTouches.length; i++) {
+    console.log("touchpoint[" + i + "].pageX = " + e.changedTouches[i].pageX);
+    console.log("touchpoint[" + i + "].pageY = " + e.changedTouches[i].pageY);
+  }
+  */
+
+  if (e.changedTouches.length == 1) {
+    moveMose(e);
+
+  } else if (e.changedTouches.length == 2) {
+    scroll(e);
+  }
+
+
+
+  document.getElementById("indecx").innerHTML = e.changedTouches[0].pageX;
+  document.getElementById("indecy").innerHTML = e.changedTouches[0].pageY;
+
+}, false);
+
+window.addEventListener('touchstart', function (e) {
+  if (mouse) {
+    lastMouseDown = new Date();
+  }
+}, false);
+
+window.addEventListener('touchend', function (e) {
+  lastMouseUp = new Date();
+  let diff = (lastMouseUp - lastMouseDown);
+  if (diff <= diffDownUp) {
+    document.getElementById("mouseC").innerHTML = "click detected";
+    sendMouse("click", 0, 0);
+  }
+
+}, false);
+
 
 /*
 function isTouchScreendevice() {
@@ -112,96 +146,16 @@ if (isTouchScreendevice()) {
 }
 */
 
-function touchHandler(event) {
-  var touches = event.changedTouches,
-    first = touches[0],
-    type = "";
-  switch (event.type) {
-    case "touchstart": type = "mousedown"; break;
-    case "touchmove": type = "mousemove"; break;
-    case "touchend": type = "mouseup"; break;
-    default: return;
-  }
 
-  // initMouseEvent(type, canBubble, cancelable, view, clickCount, 
-  //                screenX, screenY, clientX, clientY, ctrlKey, 
-  //                altKey, shiftKey, metaKey, button, relatedTarget);
-
-  var simulatedEvent = document.createEvent("MouseEvent");
-  simulatedEvent.initMouseEvent(type, true, true, window, 1,
-    first.screenX, first.screenY,
-    first.clientX, first.clientY, false,
-    false, false, false, 0/*left*/, null);
-
-  first.target.dispatchEvent(simulatedEvent);
-  //event.preventDefault();
-}
-
-function click() {
-  document.getElementById("mouseC").innerHTML = "click detected";
-
-  lastClick = new Date();
-  socket.send(JSON.stringify({
-    type: "click"
-  }));
-}
-
-
-window.addEventListener("mouseup", function (event) {
-  document.getElementById("mouseB").innerHTML = "mouse up";
-
-  if(toggle){
-    toggle = false;
-    socket.send(JSON.stringify({
-      type: "toggleUp"
-    }));
-  }
-
-  lastMouseUp = new Date();
-  let diff = (lastMouseUp - lastMouseDown);
-  if (diff <= diffDownUp) {
-    click();
-  }
-
-}, false);
-
-
-window.addEventListener("mousedown", function (event) {
-  document.getElementById("mouseB").innerHTML = "mouse down";
-  lastMouseDown = new Date();
-
-  let diff = (new Date - lastClick);
-  if (diff <= diffClick) {
-    toggle = true;
-    socket.send(JSON.stringify({
-      type: "toggle"
-    }));
-  }
-  console.log('mouseDown ' + lastMouseDown)
-}, false);
-
-
-
-
-function init() {
-  document.addEventListener("touchstart", touchHandler, false);
-  document.addEventListener("touchmove", touchHandler, false);
-  document.addEventListener("touchend", touchHandler, false);
-  document.addEventListener("touchcancel", touchHandler, false);
-}
-
-init()
 
 /*
-
 document.getElementById("swtch").addEventListener('change', e => {
 
   if(e.target.checked){
     document.getElementById("demo").innerHTML = "Hello World";
   }
 
-  
-
 });
-
 */
+
+

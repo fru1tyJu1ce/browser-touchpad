@@ -117,6 +117,8 @@ func reader(conn *websocket.Conn) {
 			mouseMove(msg.DX, msg.DY)
 		case "click":
 			robotgo.MouseClick()
+		case "scroll":
+			robotgo.ScrollMouse(msg.DY, "up")
 		case "toggle":
 			robotgo.MouseToggle("down", "left")
 		case "toggleUp":
@@ -161,6 +163,7 @@ func main() {
 		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
 		parsesAdressToJs(addr)
 		createQr(addr + "/client")
+		open("http://" + addr + "/client")
 		open("http://" + addr + "/server")
 		fmt.Println("server started", addr)
 		panic(http.Serve(listener, nil))
