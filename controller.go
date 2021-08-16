@@ -94,6 +94,14 @@ func mouseMove(dx int, dy int) {
 	robotgo.MoveMouse(actualPosX+dx, actualPosY+dy)
 }
 
+func scroll(dy int) {
+	if dy < 0 {
+		robotgo.ScrollMouse(dy, "down")
+	} else if dy > 0 {
+		robotgo.ScrollMouse(dy, "up")
+	}
+}
+
 func reader(conn *websocket.Conn) {
 
 	//	lastX, lastY := robotgo.GetMousePos()
@@ -116,9 +124,11 @@ func reader(conn *websocket.Conn) {
 		case "mouseMove":
 			mouseMove(msg.DX, msg.DY)
 		case "click":
-			robotgo.MouseClick()
+			robotgo.MouseClick("left", true)
+		case "rightClick":
+			robotgo.MouseClick("right", true)
 		case "scroll":
-			robotgo.ScrollMouse(msg.DY, "up")
+			scroll(msg.DY)
 		case "toggle":
 			robotgo.MouseToggle("down", "left")
 		case "toggleUp":

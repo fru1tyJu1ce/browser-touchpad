@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://192.168.188.23:35779/ws");  
+const socket = new WebSocket("ws://192.168.188.23:38741/ws");  
 
 console.log('attempting websocket connection');
 
@@ -20,7 +20,6 @@ socket.onerror = (error) => {
 }
 
 function sendMouse(type, dx, dy) {
-
   socket.send(JSON.stringify({
     Type: type,
     dx: ~~dx,
@@ -54,6 +53,9 @@ var lastDY = 0;
 var lastMouseDown = 0;
 var lastMouseUp = 0;
 
+var lastMouseRightDown = 0;
+var lastMouseRightUp = 0;
+
 function mouseStatus(n) {
   mouse = n;
 }
@@ -86,13 +88,14 @@ function scroll(e) {
 
   let y = e.changedTouches[0].pageY;
   let dy = (y - lastY) * 2;
-  if (mouse) {
-    sendMouse("scroll", 0, dy);
-  }
+  // if (mouse) {
+  sendMouse("scroll", 0, dy);
+  // }
 }
 
 window.addEventListener('touchmove', function (e) {
 
+  document.getElementById("multiT").innerHTML = e.changedTouches.length;
   document.getElementById("indec").innerHTML = "mouse input detected";
   // Iterate through the touch points that have moved and log each
   // of the pageX/Y coordinates. The unit of each coordinate is CSS pixels.
@@ -120,17 +123,28 @@ window.addEventListener('touchmove', function (e) {
 }, false);
 
 window.addEventListener('touchstart', function (e) {
-  if (mouse) {
+  if (mouse && e.touches.length == 1) {
     lastMouseDown = new Date();
+  } else if (mouse && e.touches.length == 2) {
+    lastMouseRightDown = new Date();
   }
 }, false);
 
 window.addEventListener('touchend', function (e) {
-  lastMouseUp = new Date();
-  let diff = (lastMouseUp - lastMouseDown);
-  if (diff <= diffDownUp) {
-    document.getElementById("mouseC").innerHTML = "click detected";
-    sendMouse("click", 0, 0);
+  if (e.touches.length == 1) {
+    lastMouseUp = new Date();
+    let diff = (lastMouseUp - lastMouseDown);
+    if (diff <= diffDownUp) {
+      document.getElementById("mouseC").innerHTML = "click detected";
+      sendMouse("click", 0, 0);
+    }
+  } else if (e.touches == 2) {
+    lastMouseRightUp = new Date();
+    let diff = (lastMouseRightUp - lastMouseRightDown);
+    if (diff <= diffDownUp) {
+      sendMouse("rightClick", 0, 0);
+    }
+
   }
 
 }, false);
