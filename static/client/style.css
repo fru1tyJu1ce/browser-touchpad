@@ -65,8 +65,24 @@
     position: fixed; 
    }
 
-   div{
-    margin: 80px;
-    height: 400px;        
-    background: orange;
-}  
+
+html, body {
+  overflow: hidden;
+}
+
+#sclr{
+  width: 50px;
+  height: 200px;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  writing-mode: vertical-lr; 
+  text-orientation: upright; 
+  display: flex;
+	align-items: center;
+	justify-content: center;
+  border-style: groove;
+  border-color: white;
+  border-width:  1px;
+  border-radius: 7px;
+}

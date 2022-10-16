@@ -1,10 +1,10 @@
-const socket = new WebSocket("ws://192.168.188.23:38741/ws");  
+const socket = new WebSocket("ws://192.168.188.23:37733/ws");
 
 console.log('attempting websocket connection');
 
 socket.onopen = () => {
   console.log('succesfully connected');
-  //socket.send('client connected');
+  socket.send('client connected');
 }
 
 socket.onclose = (event) => {
@@ -19,157 +19,153 @@ socket.onerror = (error) => {
   console.log('socket error: ', error);
 }
 
-function sendMouse(type, dx, dy) {
-  socket.send(JSON.stringify({
+function sendConrolInstruction(dx, dy, type) {
+  msg = JSON.stringify({
     Type: type,
     dx: ~~dx,
     dy: ~~dy
-  }));
-
+  })
+  socket.send(msg);
 }
 
+function init() { // everything 4 initialisation
+  canvas = document.getElementById("mainCanvas");
+  canvas.width = document.body.clientWidth;
+  canvas.height = document.body.clientHeight;
+  canvasW = canvas.width;
+  canvasH = canvas.height;
+}
+init();
 
-//touch detection
+//Settings
 
-var mouse = false; //true if touched on touchpad obj
+const STANDARDACCELERATOR = 2;
+var accelerator = STANDARDACCELERATOR;
+var nightMode = false;
 
+function activateNightMode() {
+  if (!nightMode) {
+    document.body.style.backgroundColor = "black";
+    document.body.style.color = "white";
+    nightMode = true;
+  }
+  else {
+    document.body.style.backgroundColor = "white";
+    document.body.style.color = "black";
+    nightMode = false;
+  }
+}
+activateNightMode()// aoutostart nightmode by default 
 
-const diffClick = 400;
-const diffDownUp = 400;
-const diffMouseMovement = 100;
+function changeSens(newSens) {
+  accelerator = newSens;
+  document.getElementById("valSens").innerHTML = newSens;
+}
 
-var lastMouseMove = new Date();
-var lastMouseScroll = new Date();
+// Global vars needed for touch detection
 
-var lastClick = new Date();
-var toggle = false;
+const CLICKDETECTIONTRASHHOLD = 99;
+const TOGGLETRASHHOLD = 200;
+const RELOADTRASHHOLD = 500;
+
 
 var lastX = 0;
 var lastY = 0;
 
-var lastDX = 0;
-var lastDY = 0;
+var lastTouchStart = 0;
+var lastTouchEnd = 0;
 
-var lastMouseDown = 0;
-var lastMouseUp = 0;
+var lastClick = 0;
 
-var lastMouseRightDown = 0;
-var lastMouseRightUp = 0;
+var lastTouchstartTouchpointsCount = 0;
 
-function mouseStatus(n) {
-  mouse = n;
-}
+var scroller = false;
 
-//Mousemovemmouseent
-var src = document.getElementById("touchpad");
-
-function moveMose(e) {
-  if ((new Date() - lastMouseMove) >= diffMouseMovement) {
-    lastX = e.changedTouches[0].pageX;
-    lastY = e.changedTouches[0].pageY;
-    lastMouseMove = new Date();
+// touch detection
+document.ontouchstart = (event) => {
+  let now = new Date().getTime();
+  // if (lastTouchStart != 0 && now - lastTouchStart >= RELOADTRASHHOLD) document.reload();
+  lastTouchStart = now;
+  lastX = event.touches[0].pageX;
+  lastY = event.touches[0].pageY;
+  lastTouchstartTouchpointsCount = event.touches.length;
+  document.getElementById('action').innerText = lastClick + " / "+ now;
+  if(now - lastClick < TOGGLETRASHHOLD + 400){
+    sendConrolInstruction(0, 0, "toggle");
   }
-
-
-  let x = e.changedTouches[0].pageX;
-  let y = e.changedTouches[0].pageY;
-  let dx = (x - lastX) * 2;
-  let dy = (y - lastY) * 2;
-  if (mouse) {
-    sendMouse("mouseMove", dx, dy);
-  }
-}
-
-function scroll(e) {
-  if ((new Date() - lastMouseScroll) >= diffMouseMovement) {
-    lastY = e.changedTouches[0].pageY;
-    lastMouseScroll = new Date();
-  }
-
-  let y = e.changedTouches[0].pageY;
-  let dy = (y - lastY) * 2;
-  // if (mouse) {
-  sendMouse("scroll", 0, dy);
-  // }
-}
-
-window.addEventListener('touchmove', function (e) {
-
-  document.getElementById("multiT").innerHTML = e.changedTouches.length;
-  document.getElementById("indec").innerHTML = "mouse input detected";
-  // Iterate through the touch points that have moved and log each
-  // of the pageX/Y coordinates. The unit of each coordinate is CSS pixels.
-
-  /*
-  var i;
-  for (i=0; i < e.changedTouches.length; i++) {
-    console.log("touchpoint[" + i + "].pageX = " + e.changedTouches[i].pageX);
-    console.log("touchpoint[" + i + "].pageY = " + e.changedTouches[i].pageY);
-  }
-  */
-
-  if (e.changedTouches.length == 1) {
-    moveMose(e);
-
-  } else if (e.changedTouches.length == 2) {
-    scroll(e);
-  }
-
-
-
-  document.getElementById("indecx").innerHTML = e.changedTouches[0].pageX;
-  document.getElementById("indecy").innerHTML = e.changedTouches[0].pageY;
-
-}, false);
-
-window.addEventListener('touchstart', function (e) {
-  if (mouse && e.touches.length == 1) {
-    lastMouseDown = new Date();
-  } else if (mouse && e.touches.length == 2) {
-    lastMouseRightDown = new Date();
-  }
-}, false);
-
-window.addEventListener('touchend', function (e) {
-  if (e.touches.length == 1) {
-    lastMouseUp = new Date();
-    let diff = (lastMouseUp - lastMouseDown);
-    if (diff <= diffDownUp) {
-      document.getElementById("mouseC").innerHTML = "click detected";
-      sendMouse("click", 0, 0);
-    }
-  } else if (e.touches == 2) {
-    lastMouseRightUp = new Date();
-    let diff = (lastMouseRightUp - lastMouseRightDown);
-    if (diff <= diffDownUp) {
-      sendMouse("rightClick", 0, 0);
-    }
-
-  }
-
-}, false);
-
-
-/*
-function isTouchScreendevice() {
-  return 'ontouchstart' in window || navigator.maxTouchPoints;
 };
 
-if (isTouchScreendevice()) {
-  alert("I am a touch screen device")
+var touchArea = document.getElementById('sclr');
+touchArea.ontouchstart = function (event) {
+  scroller = true;
 }
-*/
+touchArea.ontouchend = function (event) {
+  endConrolInstruction(0, 0, "toggleUp");
+  scroller = false;
+}
 
-
-
-/*
-document.getElementById("swtch").addEventListener('change', e => {
-
-  if(e.target.checked){
-    document.getElementById("demo").innerHTML = "Hello World";
+function clickDetection(event) {
+  document.getElementById('action').innerText = lastTouchstartTouchpointsCount;
+  if (lastTouchEnd - lastTouchStart
+    <= CLICKDETECTIONTRASHHOLD) {
+    var type;
+    if (lastTouchstartTouchpointsCount === 2) type = "rightClick";
+    else {
+      type = "click";
+      lastClick = new Date().getTime();
+    }
+    sendConrolInstruction(0, 0, type);
   }
+}
 
-});
-*/
+document.ontouchend = (event) => {
+  //document.getElementById('action').innerText = "touchendStart";
+  document.getElementById('action').innerText = lastTouchEnd + " / " + event.pageX;
 
+  lastTouchEnd = new Date().getTime();
+  lastX = event.pageX;
+  lastY = event.pageY;
 
+  clickDetection(event);
+};
+
+(function () {
+  document.ontouchmove = handleMouseMove;
+  function handleMouseMove(event) {
+    var eventDoc, doc, body;
+
+    event = event || window.event; // IE-ism
+
+    if (event.touches[0].pageX == null && event.clientX != null) {
+      eventDoc = (event.target && event.target.ownerDocument) || document;
+      doc = eventDoc.documentElement;
+      body = eventDoc.body;
+
+      event.touches[0].pageX = event.clientX +
+        (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+        (doc && doc.clientLeft || body && body.clientLeft || 0);
+      event.touches[0].pageY = event.clientY +
+        (doc && doc.scrollTop || body && body.scrollTop || 0) -
+        (doc && doc.clientTop || body && body.clientTop || 0);
+    }
+
+    dx = (event.touches[0].pageX - lastX) * accelerator;
+    dy = (event.touches[0].pageY - lastY) * accelerator;
+
+    lastX = event.touches[0].pageX;
+    lastY = event.touches[0].pageY;
+
+    var type;
+    if (event.targetTouches.length === 2 || scroller) {
+      type = "scroll"
+      if (dy < 0) dy = -1;
+      if (dy > 0) dy = 1;
+    }
+    else type = "movement";
+
+    sendConrolInstruction(dx, dy, type);
+    document.getElementById('action').innerText = event.targetTouches.length;
+  }
+})();
+
+document.getElementById('action').innerText = 'v.09';

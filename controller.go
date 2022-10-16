@@ -43,11 +43,10 @@ func createQr(addr string) {
 	if err := qrc.Save("./static/server/qrcode.jpeg"); err != nil {
 		fmt.Printf("could not save image: %v", err)
 	}
-
 }
 
 func parsesAdressToJs(addr string) {
-	socketJS := "const socket = new WebSocket(" + string('"') + "ws://" + addr + "/ws" + string('"') + ");  \n"
+	socketJS := "const socket = new WebSocket(" + string('"') + "ws://" + addr + "/ws" + string('"') + ");\n"
 
 	file, err := os.OpenFile("./static/client/script.js", os.O_RDWR, 0644)
 	if err != nil {
@@ -59,7 +58,6 @@ func parsesAdressToJs(addr string) {
 	if err != nil && _len != len(socketJS) {
 		log.Fatalf("failed writing to file: %s", err)
 	}
-
 }
 
 type ClientMessage struct {
@@ -112,21 +110,22 @@ func reader(conn *websocket.Conn) {
 			log.Println(err)
 			return
 		}
-		log.Println(string(rawMsg))
-
+		log.Println(rawMsg)
 		errjSON := json.Unmarshal([]byte(rawMsg), &msg)
 		if errjSON != nil {
 			log.Println(err)
 			continue
 		}
 
+		log.Println(msg)
+
 		switch msgType := msg.Type; msgType {
-		case "mouseMove":
+		case "movement":
 			mouseMove(msg.DX, msg.DY)
 		case "click":
-			robotgo.MouseClick("left", true)
+			robotgo.Click("left")
 		case "rightClick":
-			robotgo.MouseClick("right", true)
+			robotgo.Click("right")
 		case "scroll":
 			scroll(msg.DY)
 		case "toggle":
@@ -141,6 +140,7 @@ func reader(conn *websocket.Conn) {
 			return
 		}
 	}
+
 }
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +169,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-
 		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
 		parsesAdressToJs(addr)
 		createQr(addr + "/client")
@@ -177,7 +176,6 @@ func main() {
 		open("http://" + addr + "/server")
 		fmt.Println("server started", addr)
 		panic(http.Serve(listener, nil))
-
 	}()
 	wg.Wait()
 }

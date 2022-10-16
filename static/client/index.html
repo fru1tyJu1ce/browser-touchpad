@@ -1,30 +1,36 @@
+<!DOCTYPE html>
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beschreibung der Seite (erscheint in der Titelzeile des Browsers)</title>    <script language="javascript" type="text/javascript" src="script.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrowserTouchpad</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-  <body>
-    <p>Dieser Text wird im Browserfenster angezeigt.</p>
-    <p id = "indec"></p>
-    <p id = "indecx"></p>
-    <p id = "indecy"></p>
-    <p id = "tindec"></p>
-    <p id = "tindecx"></p>
-    <p id = "tindecy"></p>
-    <p id = "mouseB"></p>
-    <p id = "mouseC"></p>
-    <p id = "mouseDC"></p>
-    <p id = "multiT"></p>
+
+<body>
+  <p id="action"></p>
+  <p id="touchM"></p>
+
     
-    <p id = "demo"> "lel"</p>
+    <label class="switch">
+      <input type="checkbox" id="swtch" onclick="activateNightMode()" checked>
+      <span class="slider round"></span>
+    </label>
+    <br>
 
-    <div id="touchpad"ontouchstart="mouseStatus(true);" ontouchend="mouseStatus(false)"; ></div>
+    <label class="sens">
+      <input id="chngSense" type="range" min="0.1" max="7" step="0.5" value="2" oninput="changeSens(this.value)">
+      <label for="chngSense" id="valSens">2 </label>
+    </label>
+    <br>
 
-  </body>
+    <div class = "scroller" id= "sclr">
+      S C R O L L
+    </div>
+
+  <canvas id="mainCanvas"></canvas>
+
+  <script language="javascript" type="text/javascript" src="script.js"></script>
+</body>
+
 </html>
-
-<label class="switch">
-  <input type="checkbox" id = "swtch">
-  <span class="slider round"></span>
-</label>
