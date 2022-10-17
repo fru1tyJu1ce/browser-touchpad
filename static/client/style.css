@@ -86,3 +86,18 @@ html, body {
   border-width:  1px;
   border-radius: 7px;
 }
+
+#rghtClck{
+  width: 150px;
+  height: 50px;
+  position: fixed;
+  bottom: 0;
+  right: 55px;
+  display: flex;
+	align-items: center;
+	justify-content: center;
+  border-style: groove;
+  border-color: white;
+  border-width:  1px;
+  border-radius: 7px;
+}

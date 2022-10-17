@@ -8,25 +8,30 @@
 </head>
 
 <body>
-  <p id="action"></p>
   <p id="touchM"></p>
 
-    
-    <label class="switch">
-      <input type="checkbox" id="swtch" onclick="activateNightMode()" checked>
-      <span class="slider round"></span>
-    </label>
-    <br>
 
-    <label class="sens">
-      <input id="chngSense" type="range" min="0.1" max="7" step="0.5" value="2" oninput="changeSens(this.value)">
-      <label for="chngSense" id="valSens">2 </label>
-    </label>
-    <br>
+  <label class="switch">
+    <input type="checkbox" id="swtch" onclick="activateNightMode()" checked>
+    <span class="slider round"></span>
+  </label>
+  <br>
 
-    <div class = "scroller" id= "sclr">
-      S C R O L L
-    </div>
+  <label class="sens">
+    <input id="chngSense" type="range" min="0.1" max="7" step="0.5" value="2" oninput="changeSens(this.value)">
+    <label for="chngSense" id="valSens">2 </label>
+  </label>
+  <br>
+
+  <div id="sclr">
+    S C R O L L
+  </div>
+
+  <div id="rghtClck">
+    R 
+  </div>
+
+  <p id="version"></p>
 
   <canvas id="mainCanvas"></canvas>
 
