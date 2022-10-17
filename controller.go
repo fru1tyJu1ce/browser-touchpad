@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"sync"
 
+	//"github.com/getlantern/systray"
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
 	qrcode "github.com/yeqown/go-qrcode"
