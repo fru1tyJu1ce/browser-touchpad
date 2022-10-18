@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"sync"
 
 	"github.com/getlantern/systray"
-	"github.com/getlantern/systray/example/icon"
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
 	qrcode "github.com/yeqown/go-qrcode"
@@ -162,16 +162,20 @@ func setupRoutes() {
 	http.HandleFunc("/ws", wsEndpoint)
 }
 
-func getIcon() { // TODO
-	/*
-	   buf := new(bytes.Buffer)
-	   err := jpeg.Encode(buf, new_image, nil)
-	   send_s3 := buf.Bytes()
-	*/
+func getIcon() []byte { // TODO
+
+	bytes, err := ioutil.ReadFile("./static/res/touchpad.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return bytes
+
 }
 
 func onReady() {
-	systray.SetIcon(icon.Data)
+	bytes := getIcon()
+	systray.SetIcon(bytes)
 	systray.SetTitle("BrowserTouchpad")
 	systray.SetTooltip("active")
 	/*mQuit :=*/ systray.AddMenuItem("Quit", "Quit the whole app")

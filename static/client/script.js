@@ -1,5 +1,4 @@
-const socket = new WebSocket("ws://192.168.188.20:57166/ws");
-
+const socket = new WebSocket("ws://131.173.235.212:35165/ws");
 console.log('attempting websocket connection');
 
 socket.onopen = () => {
