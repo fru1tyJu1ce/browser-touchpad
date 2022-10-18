@@ -12,7 +12,8 @@ import (
 	"strconv"
 	"sync"
 
-	//"github.com/getlantern/systray"
+	"github.com/getlantern/systray"
+	"github.com/getlantern/systray/example/icon"
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
 	qrcode "github.com/yeqown/go-qrcode"
@@ -161,7 +162,30 @@ func setupRoutes() {
 	http.HandleFunc("/ws", wsEndpoint)
 }
 
+func getIcon() { // TODO
+	/*
+	   buf := new(bytes.Buffer)
+	   err := jpeg.Encode(buf, new_image, nil)
+	   send_s3 := buf.Bytes()
+	*/
+}
+
+func onReady() {
+	systray.SetIcon(icon.Data)
+	systray.SetTitle("BrowserTouchpad")
+	systray.SetTooltip("active")
+	/*mQuit :=*/ systray.AddMenuItem("Quit", "Quit the whole app")
+
+	// Sets the icon of a menu item. Only available on Mac and Windows.
+	//mQuit.SetIcon(icon.Data)
+}
+
+func onExit() { // TODO
+	// clean up here
+}
+
 func main() {
+	go systray.Run(onReady, onExit)
 	var wg sync.WaitGroup
 	setupRoutes()
 	wg.Add(1)
