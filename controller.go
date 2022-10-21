@@ -164,13 +164,11 @@ func setupRoutes() {
 
 func getIcon() []byte { // TODO
 
-	bytes, err := ioutil.ReadFile("./static/res/touchpad.png")
+	bytes, err := ioutil.ReadFile("./static/res/invaderwhite.ico")
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return bytes
-
 }
 
 func onReady() {

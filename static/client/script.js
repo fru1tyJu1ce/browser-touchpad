@@ -1,4 +1,5 @@
-const socket = new WebSocket("ws://131.173.235.212:35165/ws");
+const socket = new WebSocket("ws://192.168.188.20:54901/ws");
+
 console.log('attempting websocket connection');
 
 socket.onopen = () => {
@@ -43,6 +44,7 @@ init();
 var accelerator = 2;
 var nightMode = false;
 
+/* methods for settings & configuaration */
 function activateNightMode() {
   if (!nightMode) {
     document.body.style.backgroundColor = "black";
