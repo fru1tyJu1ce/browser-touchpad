@@ -3,64 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"os"
-	"os/exec"
-	"runtime"
-	"strconv"
-	"sync"
 
-	"github.com/getlantern/systray"
+	"strconv"
+
 	"github.com/go-vgo/robotgo"
 	"github.com/gorilla/websocket"
-	qrcode "github.com/yeqown/go-qrcode"
 )
 
-func open(url string) error {
-	var cmd string
-	var args []string
+var Run bool = true // App iss runing while run == true
+var Addr string     // Connection data
 
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	case "darwin":
-		cmd = "open"
-	default: // "linux", "freebsd", "openbsd", "netbsd"
-		cmd = "xdg-open"
-	}
-	args = append(args, url)
-	return exec.Command(cmd, args...).Start()
-}
-
-func createQr(addr string) {
-	qrc, err := qrcode.New("http://" + addr)
-	if err != nil {
-		fmt.Printf("could not generate QRCode: %v", err)
-	}
-
-	if err := qrc.Save("./static/server/qrcode.jpeg"); err != nil {
-		fmt.Printf("could not save image: %v", err)
-	}
-}
-
-func parsesAdressToJs(addr string) {
-	socketJS := "const socket = new WebSocket(" + string('"') + "ws://" + addr + "/ws" + string('"') + ");\n"
-
-	file, err := os.OpenFile("./static/client/script.js", os.O_RDWR, 0644)
-	if err != nil {
-		log.Fatalf("failed opening file: %s", err)
-	}
-	defer file.Close()
-
-	_len, err := file.WriteAt([]byte(socketJS), 0)
-	if err != nil && _len != len(socketJS) {
-		log.Fatalf("failed writing to file: %s", err)
-	}
-}
+var fileServerServer = http.FileServer(http.Dir("./static/server"))
+var fileServerClient = http.FileServer(http.Dir("./static/client"))
 
 type ClientMessage struct {
 	Type string `json:"Type"`
@@ -72,9 +29,6 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  128,
 	WriteBufferSize: 128,
 }
-
-var fileServerServer = http.FileServer(http.Dir("./static/server"))
-var fileServerClient = http.FileServer(http.Dir("./static/client"))
 
 // Get preferred outbound ip of this machine
 func GetOutboundIP() net.IP {
@@ -112,6 +66,7 @@ func reader(conn *websocket.Conn) {
 			log.Println(err)
 			return
 		}
+
 		log.Println(rawMsg)
 		errjSON := json.Unmarshal([]byte(rawMsg), &msg)
 		if errjSON != nil {
@@ -141,12 +96,13 @@ func reader(conn *websocket.Conn) {
 		if err := conn.WriteMessage(messageType, rawMsg); err != nil {
 			return
 		}
+
 	}
 
 }
 
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true } //TODO
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true } //TODO cyber sec muy importante
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -162,47 +118,32 @@ func setupRoutes() {
 	http.HandleFunc("/ws", wsEndpoint)
 }
 
-func getIcon() []byte { // TODO
-
-	bytes, err := ioutil.ReadFile("./static/res/invaderwhite.ico")
+func setup() {
+	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	return bytes
+	Addr = GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
+	parseAdressToJs(Addr)
+	createQr(Addr + "/client")
+	//open("http://" + Addr + "/client")
+	go open("http://" + Addr + "/server")
+	fmt.Println("server started", Addr)
+	panic(http.Serve(listener, nil))
+
 }
 
-func onReady() {
-	bytes := getIcon()
-	systray.SetIcon(bytes)
-	systray.SetTitle("BrowserTouchpad")
-	systray.SetTooltip("active")
-	/*mQuit :=*/ systray.AddMenuItem("Quit", "Quit the whole app")
-
-	// Sets the icon of a menu item. Only available on Mac and Windows.
-	//mQuit.SetIcon(icon.Data)
-}
-
-func onExit() { // TODO
-	// clean up here
+func runCheck() {
+	for {
+		if !Run {
+			return
+		}
+	}
 }
 
 func main() {
-	go systray.Run(onReady, onExit)
-	var wg sync.WaitGroup
+	InitTrayHandler()
 	setupRoutes()
-	wg.Add(1)
-	go func() {
-		listener, err := net.Listen("tcp", ":0")
-		if err != nil {
-			panic(err)
-		}
-		addr := GetOutboundIP().String() + ":" + strconv.Itoa(listener.Addr().(*net.TCPAddr).Port)
-		parsesAdressToJs(addr)
-		createQr(addr + "/client")
-		open("http://" + addr + "/client")
-		open("http://" + addr + "/server")
-		fmt.Println("server started", addr)
-		panic(http.Serve(listener, nil))
-	}()
-	wg.Wait()
+	go setup()
+	runCheck()
 }

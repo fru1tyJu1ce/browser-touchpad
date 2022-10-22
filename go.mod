@@ -1,4 +1,4 @@
-module github.com/onion-byte/webRemoteServer
+module github.com/onnbt/BrowserTouchpad
 
 go 1.16
 
