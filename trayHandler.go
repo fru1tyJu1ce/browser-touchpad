@@ -7,7 +7,7 @@ import (
 	"github.com/getlantern/systray"
 )
 
-func getIcon() []byte { //TODO Changeable icon color
+func getIcon() []byte { //TODO Changeable icon color, black icon -> iconblack.ico
 
 	bytes, err := ioutil.ReadFile("./static/res/iconwhite.ico")
 	if err != nil {
