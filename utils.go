@@ -38,7 +38,7 @@ func createQr(addr string) {
 	}
 }
 
-// Parsing address(connection) data to ./static/client/script.js needed for the frontend websocket connection
+// Parsing address(connection data) to ./static/client/script.js needed for the frontend websocket connection
 func parseAdressToJs(addr string) {
 	socketJS := "const socket = new WebSocket(" + string('"') + "ws://" + addr + "/ws" + string('"') + ");\n"
 
