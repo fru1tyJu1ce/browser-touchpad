@@ -30,7 +30,7 @@ func open(url string) error {
 func createQr(addr string) {
 	qrc, err := qrcode.New("http://" + addr)
 	if err != nil {
-		fmt.Printf("could not generate QRCode: %v", err)
+		fmt.Printf("could not generate QRCode: %v", err) 
 	}
 
 	if err := qrc.Save("./static/server/qrcode.jpeg"); err != nil {

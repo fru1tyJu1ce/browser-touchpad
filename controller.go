@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sync"
 
 	"strconv"
 
@@ -13,16 +14,28 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var Run bool = true // App iss runing while run == true
-var Addr string     // Connection data
+// Globals
+var wg sync.WaitGroup
+
+var Addr string // Connection data
 
 var fileServerServer = http.FileServer(http.Dir("./static/server"))
 var fileServerClient = http.FileServer(http.Dir("./static/client"))
 
-type ClientMessage struct {
-	Type string `json:"Type"`
-	DX   int    `json:"dx"`
-	DY   int    `json:"dy"`
+// Helpers
+
+func exit() { // exits the program if the waitgroup is done
+	wg.Done()
+}
+
+func GetOutboundIP() net.IP { // Get preferred outbound ip of this machine
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP
 }
 
 var upgrader = websocket.Upgrader{
@@ -30,18 +43,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 128,
 }
 
-// Get preferred outbound ip of this machine
-func GetOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
-}
+// Actual mouse controll
 
 func mouseMove(dx int, dy int) {
 	actualPosX, actualPosY := robotgo.GetMousePos()
@@ -54,6 +56,12 @@ func scroll(dy int) {
 	} else if dy > 0 {
 		robotgo.ScrollMouse(dy, "up")
 	}
+}
+
+type ClientMessage struct {
+	Type string `json:"Type"`
+	DX   int    `json:"dx"`
+	DY   int    `json:"dy"`
 }
 
 func reader(conn *websocket.Conn) {
@@ -101,9 +109,10 @@ func reader(conn *websocket.Conn) {
 
 }
 
+//Setup websockets, endpoints and routses
+
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true } //TODO cyber sec muy importante
-
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -133,17 +142,11 @@ func setup() {
 
 }
 
-func runCheck() {
-	for {
-		if !Run {
-			return
-		}
-	}
-}
-
 func main() {
 	InitTrayHandler()
 	setupRoutes()
+
+	wg.Add(1)
 	go setup()
-	runCheck()
+	wg.Wait()
 }

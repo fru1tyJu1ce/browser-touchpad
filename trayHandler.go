@@ -30,7 +30,7 @@ func onReady() {
 
 	go func() {
 		<-mQuit.ClickedCh
-		Run = false
+		exit()
 		systray.Quit()
 	}()
 }
