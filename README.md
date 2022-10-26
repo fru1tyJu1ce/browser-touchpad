@@ -9,7 +9,7 @@ without an extra app on your mobile device.
 
 ## Usage 
 
-1. Download as zip or clone this repository, unzip and/or into the repository folder.
+1. Download as zip or clone this repository, unzip and/or change to the repository folder.
 
 2. Windows: Run the BrowserTouchpad.exe and **allow network access** if you get a windows defender firewall warning.
   
