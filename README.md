@@ -34,7 +34,7 @@ without an extra app on your mobile device.
 
 **Client:** Js, HTML, CSS
 
-**Server:** [Go[(https://github.com/golang), [Gorilla WebSocket](https://github.com/gorilla/websocket), [Robotgo](https://github.com/go-vgo/robotgo)
+**Server:** [Go](https://github.com/golang), [Gorilla WebSocket](https://github.com/gorilla/websocket), [Robotgo](https://github.com/go-vgo/robotgo)
 
 
 ## TODO
