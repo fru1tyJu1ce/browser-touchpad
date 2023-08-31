@@ -13,9 +13,9 @@ without an extra app on your mobile device.
 
 2. Build and run 
 
-        **Windows:** Run the BrowserTouchpad.exe and **allow network access** if you get a windows defender firewall warning
+   **Windows:** Run the BrowserTouchpad.exe and allow network access if you get a windows defender firewall warning
   
-        **Windows, Linux & MacOS:** Build and Run the program with Go 1.18 or higher
+   **Windows alternative, Linux and MacOS:** Build and Run the program with Go 1.18 or higher
 
 4. A browser tab will open, if not click on the tray icon -> *Show QR Code*
 
