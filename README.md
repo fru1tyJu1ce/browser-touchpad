@@ -1,36 +1,37 @@
+# Browser Touchpad
 
-# BrowserTouchpad
+Transform your touch device into a touchpad for your computer, all without needing an extra app on your mobile device.
 
-Use your touch device as a touchpad for your computer, 
-without an extra app on your mobile device.
+- *Works seamlessly on Linux, Windows, and MacOS.*
+- *Both devices must be connected to the same network.*
 
--*Works with Linux, Windows and MacOs*
--*Both devices have to be in the same network.*
+## Usage
 
-### Usage 
+1. **Download and Installation**
 
-1. Download or clone this repository and change in to the repository folder
+   Download or clone this repository and navigate to the repository folder.
 
-2. Build and run 
+2. **Build and Run**
 
-   **Windows:** Run the BrowserTouchpad.exe and allow network access if you get a windows defender firewall warning
-  
-   **Windows alternative, Linux and MacOS:** Build and Run the program with Go 1.18 or higher
+   - **Windows:** Run the `BrowserTouchpad.exe` file and allow network access if prompted by Windows Defender Firewall.
+   - **Alternative for Windows, Linux, and MacOS:** Build yourself and run the program with Go 1.18 or higher.
 
-4. A browser tab will open, if not click on the tray icon -> *Show QR Code*
+3. **Connect Your Devices**
 
-5. Scan the QR Code with your your mobile device
+   A browser tab will open automatically. If not, click on the tray icon and select "Show QR Code".
 
+4. **Pair Your Devices**
 
-### Screenshots
+   Scan the displayed QR code using your mobile device's camera.
 
-<img src="https://github.com/onnbt/BrowserTouchpad/blob/master/screenshots/tray.png" width=13% height=13%>
-<img src="https://github.com/onnbt/BrowserTouchpad/blob/master/screenshots/browser.png" width=13% height=13%>
-<img src="https://github.com/onnbt/BrowserTouchpad/blob/master/screenshots/mobile.jpg" width=13% height=13%>
+## Screenshots
 
-### Tech Stack
+<img src="https://github.com/onnbt/BrowserTouchpad/blob/master/screenshots/tray.png" width=30% height=30% alt="Tray icon">
+<img src="https://github.com/onnbt/BrowserTouchpad/blob/master/screenshots/browser.png" width=30% height=30% alt="Browser interface">
+<img src="https://github.com/onnbt/BrowserTouchpad/blob/master/screenshots/mobile.jpg" width=30% height=30% alt="Mobile device">
 
-**Client:** Js, HTML, CSS
+## Tech Stack
+
+**Client:** JavaScript, HTML, CSS
 
 **Server:** [Go](https://github.com/golang), [Gorilla WebSocket](https://github.com/gorilla/websocket), [Robotgo](https://github.com/go-vgo/robotgo)
-
